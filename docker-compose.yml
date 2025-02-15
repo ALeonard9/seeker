@@ -25,6 +25,7 @@ services:
     image: containrrr/watchtower:latest
     environment:
       WATCHTOWER_NOTIFICATION_REPORT: "true"
+      WATCHTOWER_DEBUG: "true"
       WATCHTOWER_POLL_INTERVAL: 3600 # Check every hour (3600 seconds)
       WATCHTOWER_CLEANUP: true # Remove old images after updates
       TZ: AMERICA/CHICAGO
@@ -37,9 +38,6 @@ services:
               {{- range .Updated}}
         - {{.Name}} ({{.ImageName}}): {{.CurrentImageID.ShortID}} updated to {{.LatestImageID.ShortID}}
               {{- end -}}
-              {{- range .Fresh}}
-        - {{.Name}} ({{.ImageName}}): {{.State}}
-            {{- end -}}
             {{- range .Skipped}}
         - {{.Name}} ({{.ImageName}}): {{.State}}: {{.Error}}
             {{- end -}}
