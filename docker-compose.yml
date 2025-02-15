@@ -12,12 +12,45 @@ services:
       - local_network
   grafana:
     container_name: ${LZ}_grafana_${ENV}
-    image: grafana/grafana
+    image: grafana/grafana:latest
     ports:
       - 3000:3000
     restart: unless-stopped	
     volumes:
       - grafana_data:/var/lib/grafana
+    networks:
+      - local_network
+  watchtower:
+    container_name: ${LZ}_watchtower_${ENV}
+    image: containrrr/watchtower:latest
+    environment:
+      WATCHTOWER_NOTIFICATION_REPORT: "true"
+      WATCHTOWER_POLL_INTERVAL: 3600 # Check every hour (3600 seconds)
+      WATCHTOWER_CLEANUP: true # Remove old images after updates
+      TZ: AMERICA/CHICAGO
+      WATCHTOWER_NOTIFICATIONS: shoutrrr
+      WATCHTOWER_NOTIFICATION_URL: telegram://${BOT_TOKEN}@telegram/?channels=${CHAT_ID}
+      WATCHTOWER_NOTIFICATION_TEMPLATE: |
+        {{- if .Report -}}
+          {{- with .Report -}}
+        {{len .Scanned}} Scanned, {{len .Updated}} Updated, {{len .Failed}} Failed
+              {{- range .Updated}}
+        - {{.Name}} ({{.ImageName}}): {{.CurrentImageID.ShortID}} updated to {{.LatestImageID.ShortID}}
+              {{- end -}}
+              {{- range .Fresh}}
+        - {{.Name}} ({{.ImageName}}): {{.State}}
+            {{- end -}}
+            {{- range .Skipped}}
+        - {{.Name}} ({{.ImageName}}): {{.State}}: {{.Error}}
+            {{- end -}}
+            {{- range .Failed}}
+        - {{.Name}} ({{.ImageName}}): {{.State}}: {{.Error}}
+            {{- end -}}
+          {{- end -}}
+        {{- end -}}
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - local_network
 volumes:
