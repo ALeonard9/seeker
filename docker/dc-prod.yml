@@ -2,20 +2,23 @@ services:
   loki:
     container_name: ${LZ}_loki_${ENV}
     image: grafana/loki:latest
-    ports:
-      - 3100:3100
     volumes:
-      - ./loki/loki-config.yml:/etc/loki/loki-config.yaml
+      - ../loki/loki-config.yml:/etc/loki/loki-config.yaml
       - loki_data:/data
     restart: unless-stopped
+    networks:
+      - gs_network	
   grafana:
     container_name: ${LZ}_grafana_${ENV}
     image: grafana/grafana
-    ports:
-      - 3000:3000
     restart: unless-stopped	
     volumes:
       - grafana_data:/var/lib/grafana
+    networks:
+      - gs_network
 volumes:
   grafana_data:
   loki_data:
+networks:
+  gs_network: 
+    external: true
