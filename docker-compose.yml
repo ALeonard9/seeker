@@ -8,6 +8,8 @@ services:
       - ./loki/loki-config.yml:/etc/loki/loki-config.yaml
       - loki_data:/data
     restart: unless-stopped
+    networks:
+      - local_network
   grafana:
     container_name: ${LZ}_grafana_${ENV}
     image: grafana/grafana
@@ -16,6 +18,13 @@ services:
     restart: unless-stopped	
     volumes:
       - grafana_data:/var/lib/grafana
+    networks:
+      - local_network
 volumes:
   grafana_data:
   loki_data:
+
+networks:
+  local_network:
+    name: "${LZ}_network_${ENV}"
+    external: true
