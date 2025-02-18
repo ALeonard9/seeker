@@ -26,10 +26,10 @@ services:
     environment:
       TZ: US/Central
       WATCHTOWER_NOTIFICATION_REPORT: "true"
-      WATCHTOWER_SCHEDULE: "0 0 15-23 * * *"  # Run at minute 0 of hours 15-23 (3 PM to 11 PM)
+      WATCHTOWER_SCHEDULE: "0 9 15-23 * * *"  # Run at minute 9 of hours 15-23 (3 PM to 11 PM)
       WATCHTOWER_CLEANUP: true # Remove old images after updates
       WATCHTOWER_NOTIFICATIONS: shoutrrr
-      WATCHTOWER_NOTIFICATION_URL: telegram://${BOT_TOKEN}@telegram/?channels=${CHAT_ID}
+      WATCHTOWER_NOTIFICATION_URL: telegram://${TELEGRAM_BOT_TOKEN}@telegram/?channels=${TELEGRAM_CHAT_ID}
       WATCHTOWER_NOTIFICATION_TEMPLATE: |
         {{- if .Report -}}
           {{- if .Report.Updated -}}
@@ -42,6 +42,7 @@ services:
     restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      - ./watchtower/config.json:/config.json
     networks:
       - local_network
 volumes:
