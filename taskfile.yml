@@ -4,7 +4,7 @@ tasks:
   default:
     desc: "List all available tasks"
     cmds:
-      - task: help
+      - task -l
   du:
     desc: "Launch Seeker Docker environment (default: dev)"
     vars:
