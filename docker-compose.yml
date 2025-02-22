@@ -5,21 +5,35 @@ services:
     ports:
       - 3100:3100
     volumes:
-      - ./loki/loki-config.yml:/etc/loki/loki-config.yaml
-      - loki_data:/data
+      - ./loki/loki-config.yml:/etc/loki/loki-config.yaml:rw
+      - ./loki/data:/data:rw
+    command: -config.file=/etc/loki/loki-config.yaml
     restart: unless-stopped
     networks:
       - local_network
   grafana:
     container_name: ${LZ}_grafana_${ENV}
+    user: '501'
     image: grafana/grafana:latest
     ports:
       - 3000:3000
     restart: unless-stopped	
+    depends_on:
+      - loki
     volumes:
-      - grafana_data:/var/lib/grafana
+      - ./grafana:/var/lib/grafana:rw
     networks:
       - local_network
+  # promtail:
+  #   container_name: ${LZ}_promtail_${ENV}
+  #   image: grafana/promtail:latest
+  #   volumes:
+  #     - /var/lib/docker/containers:/var/lib/docker/containers:ro
+  #     - ./promtail/promtail-config.yml:/etc/promtail/promtail-config.yaml:ro
+  #   restart: unless-stopped
+  #   command: -config.file=/etc/promtail/promtail-config.yaml
+  #   networks:
+  #     - local_network
   watchtower:
     container_name: ${LZ}_watchtower_${ENV}
     image: containrrr/watchtower:latest
@@ -40,14 +54,13 @@ services:
           {{- end -}}
         {{- end -}}
     restart: unless-stopped
+    depends_on:
+      - loki
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ./watchtower/config.json:/config.json
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./watchtower/config.json:/config.json:ro
     networks:
       - local_network
-volumes:
-  grafana_data:
-  loki_data:
 
 networks:
   local_network:

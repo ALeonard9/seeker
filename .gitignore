@@ -1,2 +1,5 @@
 env/prod.env
+env/dev.env
+loki/data/*
+grafana/*
 watchtower/config.json

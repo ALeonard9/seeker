@@ -5,16 +5,25 @@ Inspired by Mistborn Seekers, seeker can sense power. This is a collection of to
 ## Getting Started
 
 Prerequisites:
+
 - Docker
 - Telegram account
 
-This setup uses a standalone docker network. 
+This setup uses a standalone docker network.
 
 To create the Docker network, run:
+
 ```sh
 docker network create gs_network_dev
 ```
+
 Change the name to reflect your landing zone and environment.
+
+Add the loki driver. This is required for the docker logs to be sent to Loki.
+
+```sh
+docker plugin install grafana/loki-docker-driver:3.3.2-arm64 --alias loki --grant-all-permissions
+```
 
 ## Tools
 
@@ -22,7 +31,7 @@ Change the name to reflect your landing zone and environment.
 
 Watchtower automatically updates running Docker containers whenever a new image is available. It also sends notifications about the updates.
 
-**Warning:**  Pinning all of your containers to "latest" should be done with caution. Consider if this is within your risk appetite for your environment.
+**Warning:** Pinning all of your containers to "latest" should be done with caution. Consider if this is within your risk appetite for your environment.
 
 #### Configuration
 
@@ -33,15 +42,15 @@ Watchtower is configured using the `config.json` file and environment variables 
 
 Steps: https://containrrr.dev/watchtower/private-registries/
 
-
 To base64 encode your Docker registry authentication, run:
+
 ```sh
 echo -n 'username:password' | base64
 ```
+
 Replace `username` and `password` with your Docker registry credentials.
 
 **Warning:** Base64 encoding is very easily reversed. Do not commit the encoded credentials to GitHub.
-
 
 #### Environment Variables
 
@@ -58,15 +67,19 @@ Replace `username` and `password` with your Docker registry credentials.
 Below are the steps to set up Telegram notifications for Watchtower updates:
 
 1. **Create a Telegram Bot**
+
    - Open Telegram and search for BotFather. Start a chat with BotFather and send the `/newbot` command. Follow the prompts to choose a name and username for your bot. Once completed, BotFather will provide you with a bot token. This token (BOT_TOKEN) is needed to allow Watchtower to send messages.
 
 2. **Create a Telegram Channel or Group**
+
    - Create a channel (or a group) where you want to receive the update messages. If you use a channel, make sure that it is set up to receive messages from bots.
 
 3. **Invite the Bot to Your Channel/Group**
+
    - Add your new bot to the channel or group as an administrator. This is required for the bot to post messages. For channels, simply use the “Add Admin” process; for groups, send the `/add` command or use the group settings to add the bot.
 
 4. **Obtain the Channel or Group Identifier**
+
    - The WATCHTOWER_NOTIFICATION_URL requires a channel identifier (CHAT_ID). For public channels, you can often use the channel’s username (prefixed with @), but if you need a numeric chat id, you might use:
      - A dedicated Telegram ID bot, such as `userinfobot`, to get your channel or group id.
      - Forward a message from your channel to the bot and check the details. Take note of this identifier (CHAT_ID).
@@ -86,9 +99,31 @@ Loki is configured using the `loki-config.yml` file.
 
 - `loki-config.yml`: Contains settings for server ports, storage paths, and schema configurations.
 
+### Promtail
+
+Promtail is an agent that ships logs from the filesystem to Loki. It is usually deployed alongside your services for log collection.
+
+#### Configuration
+
+Promtail configuration is defined in the `promtail-config.yml` file.
+
+- `promtail-config.yml`: Contains settings for scraping logs from specified paths and sending them to Loki.
+
+Add the following to daemon.json. On MacOS, this is located at `~/.docker/daemon.json`.
+
+```json
+{
+  "log-driver": "loki",
+  "log-opts": {
+    "loki-url": "http://localhost:3100/loki/api/v1/push",
+    "loki-batch-size": "400"
+  }
+}
+```
+
 ### Grafana
 
-Grafana is a data visualization tool that integrates with Loki to display logs and metrics.
+Grafana is a multi-platform open-source analytics and interactive visualization web application. It provides charts, graphs, and alerts for the web when connected to supported data sources.
 
 #### Configuration
 
