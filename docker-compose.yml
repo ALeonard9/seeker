@@ -13,7 +13,7 @@ services:
       - local_network
   grafana:
     container_name: ${LZ}_grafana_${ENV}
-    user: '501'
+    user: ${UID}:${GID}
     image: grafana/grafana:latest
     ports:
       - 3000:3000
