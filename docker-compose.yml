@@ -62,6 +62,43 @@ services:
     networks:
       - local_network
 
+  cadvisor:
+    container_name: ${LZ}_cadvisor_${ENV}
+    image: gcr.io/cadvisor/cadvisor:latest
+    platform: linux/arm64  # Specifically for Apple M3
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /dev/disk/:/dev/disk:ro
+    ports:
+      - 8080:8080
+    privileged: true
+    devices:
+      - /dev/kmsg
+    restart: unless-stopped
+    networks:
+      - local_network
+
+  prometheus:
+    container_name: ${LZ}_prometheus_${ENV}
+    image: prom/prometheus:latest
+    ports:
+      - 9090:9090
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus/data:/prometheus:rw
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    restart: unless-stopped
+    networks:
+      - local_network
+
 networks:
   local_network:
     name: "${LZ}_network_${ENV}"
