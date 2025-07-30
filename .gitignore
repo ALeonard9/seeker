@@ -3,3 +3,4 @@ env/dev.env
 loki/data/*
 grafana/*
 watchtower/config.json
+prometheus/data/*
