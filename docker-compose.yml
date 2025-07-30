@@ -5,12 +5,15 @@ services:
     ports:
       - 3100:3100
     volumes:
-      - ./loki/loki-config.yml:/etc/loki/loki-config.yaml:rw
-      - ./loki/data:/data:rw
+      # Mount named volume containing loki-config.yaml
+      - ${LZ}_loki_config_${ENV}:/etc/loki:rw
+      # Mount for Loki's persistent data storage
+      - ${LZ}_loki_data_${ENV}:/rw
     command: -config.file=/etc/loki/loki-config.yaml
     restart: unless-stopped
     networks:
       - local_network
+
   grafana:
     container_name: ${LZ}_grafana_${ENV}
     user: ${UID}:${GID}
@@ -21,27 +24,18 @@ services:
     depends_on:
       - loki
     volumes:
-      - ./grafana:/var/lib/grafana:rw
+      - ${LZ}_grafana_data_${ENV}:/var/lib/grafana:rw
     networks:
       - local_network
-  # promtail:
-  #   container_name: ${LZ}_promtail_${ENV}
-  #   image: grafana/promtail:latest
-  #   volumes:
-  #     - /var/lib/docker/containers:/var/lib/docker/containers:ro
-  #     - ./promtail/promtail-config.yml:/etc/promtail/promtail-config.yaml:ro
-  #   restart: unless-stopped
-  #   command: -config.file=/etc/promtail/promtail-config.yaml
-  #   networks:
-  #     - local_network
+
   watchtower:
     container_name: ${LZ}_watchtower_${ENV}
     image: containrrr/watchtower:latest
     environment:
       TZ: US/Central
       WATCHTOWER_NOTIFICATION_REPORT: "true"
-      WATCHTOWER_SCHEDULE: "0 9 15-23 * * *"  # Run at minute 9 of hours 15-23 (3 PM to 11 PM)
-      WATCHTOWER_CLEANUP: true # Remove old images after updates
+      WATCHTOWER_SCHEDULE: "0 9 15-23 * * *"
+      WATCHTOWER_CLEANUP: true
       WATCHTOWER_NOTIFICATIONS: shoutrrr
       WATCHTOWER_NOTIFICATION_URL: telegram://${TELEGRAM_BOT_TOKEN}@telegram/?channels=${TELEGRAM_CHAT_ID}
       WATCHTOWER_NOTIFICATION_TEMPLATE: |
@@ -58,11 +52,19 @@ services:
       - loki
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./watchtower/config.json:/config.json:ro
+      - ${LZ}_watchtower_config_${ENV}:/config.json:ro
     networks:
       - local_network
 
+# External network must exist as attachable
 networks:
   local_network:
     name: "${LZ}_network_${ENV}"
     external: true
+
+# Named volumes with per-env isolation
+volumes:
+  ${LZ}_loki_config_${ENV}:
+  ${LZ}_loki_data_${ENV}:
+  ${LZ}_grafana_data_${ENV}:
+  ${LZ}_watchtower_config_${ENV}:
