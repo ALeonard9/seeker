@@ -50,7 +50,7 @@ services:
       - loki
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - watchtower_config:/config.json:rw
+      - watchtower_config:/config.json:ro
     networks:
       - local_network
 
