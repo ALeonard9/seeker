@@ -5,10 +5,8 @@ services:
     ports:
       - 3100:3100
     volumes:
-      # Mount named volume containing loki-config.yaml
-      - ${LZ}_loki_config_${ENV}:/etc/loki:rw
-      # Mount for Loki's persistent data storage
-      - ${LZ}_loki_data_${ENV}:/rw
+      - loki_config:/etc/loki:rw
+      - loki_data/rw
     command: -config.file=/etc/loki/loki-config.yaml
     restart: unless-stopped
     networks:
@@ -20,11 +18,11 @@ services:
     image: grafana/grafana:latest
     ports:
       - 3000:3000
-    restart: unless-stopped	
+    restart: unless-stopped
     depends_on:
       - loki
     volumes:
-      - ${LZ}_grafana_data_${ENV}:/var/lib/grafana:rw
+      - grafana_data/var/lib/grafana:rw
     networks:
       - local_network
 
@@ -52,19 +50,25 @@ services:
       - loki
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ${LZ}_watchtower_config_${ENV}:/config.json:ro
+      - watchtower_config:/config.json:ro
     networks:
       - local_network
 
-# External network must exist as attachable
 networks:
   local_network:
     name: "${LZ}_network_${ENV}"
     external: true
-
-# Named volumes with per-env isolation
+    
 volumes:
-  ${LZ}_loki_config_${ENV}:
-  ${LZ}_loki_data_${ENV}:
-  ${LZ}_grafana_data_${ENV}:
-  ${LZ}_watchtower_config_${ENV}:
+  loki_config:
+    name: "${LZ}_loki_config_${ENV}"
+    external: true
+  loki_data:
+    name: "${LZ}_loki_data_${ENV}"
+    external: true
+  grafana_data:
+    name: "${LZ}_grafana_data_${ENV}"
+    external: true
+  watchtower_config:
+    name: "${LZ}_watchtower_config_${ENV}"
+    external: true
