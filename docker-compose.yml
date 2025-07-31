@@ -54,6 +54,16 @@ services:
     networks:
       - local_network
 
+  cf-tunnel:
+    container_name: ${LZ}_cloudflared_tunnel_${ENV}
+    image: cloudflare/cloudflared
+    restart: unless-stopped
+    command: tunnel --pq run
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
+    networks:
+      - local_network
+
 networks:
   local_network:
     name: "${LZ}_network_${ENV}"
