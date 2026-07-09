@@ -1,0 +1,68 @@
+# Metrics side-stack for the homelab — additive to the Portainer-managed seeker
+# stack (loki/grafana). Runs on the same external network so Grafana can scrape
+# Prometheus by name. Deploy: docker compose -f metrics/docker-compose.yml up -d
+services:
+  prometheus:
+    container_name: ${LZ:-gaia}_prometheus_${ENV:-prod}
+    image: prom/prometheus:latest
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.retention.time=15d
+      - --web.enable-lifecycle
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    networks:
+      - local_network
+
+  cadvisor:
+    container_name: ${LZ:-gaia}_cadvisor_${ENV:-prod}
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    restart: unless-stopped
+    privileged: true
+    devices:
+      - /dev/kmsg
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      # snap docker stores containers here (not /var/lib/docker)
+      - /var/snap/docker/common/var-lib-docker:/var/lib/docker:ro
+      - /dev/disk:/dev/disk:ro
+    networks:
+      - local_network
+
+  node-exporter:
+    container_name: ${LZ:-gaia}_node_exporter_${ENV:-prod}
+    image: prom/node-exporter:latest
+    restart: unless-stopped
+    command:
+      - --path.rootfs=/host
+      - --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)
+    pid: host
+    volumes:
+      - /:/host:ro
+    networks:
+      - local_network
+
+  # Proxmox (gaia) node/VM health. Config (with API token) is host-only + gitignored.
+  pve-exporter:
+    container_name: ${LZ:-gaia}_pve_exporter_${ENV:-prod}
+    image: prompve/prometheus-pve-exporter:latest
+    restart: unless-stopped
+    # Run as the host file owner so the 600 token file stays private but readable.
+    user: '1000:1000'
+    volumes:
+      - ./pve.yml:/etc/prometheus/pve.yml:ro
+    networks:
+      - local_network
+
+networks:
+  local_network:
+    name: ${LZ:-gaia}_network_${ENV:-prod}
+    external: true
+
+volumes:
+  prometheus_data:
+    name: ${LZ:-gaia}_prometheus_data_${ENV:-prod}

@@ -1,0 +1,81 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "graphTooltip": 1,
+  "time": { "from": "now-6h", "to": "now" },
+  "timezone": "",
+  "title": "Stack Health",
+  "uid": "seeker-stack-health",
+  "schemaVersion": 39,
+  "version": 1,
+  "templating": { "list": [] },
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Host CPU %",
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "seeker_prometheus" },
+      "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100, "thresholds": { "steps": [ { "color": "green", "value": null }, { "color": "yellow", "value": 70 }, { "color": "red", "value": 90 } ] } } },
+      "targets": [ { "refId": "A", "expr": "100 - (avg(rate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)" } ]
+    },
+    {
+      "type": "stat",
+      "title": "Host Memory %",
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "seeker_prometheus" },
+      "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100, "thresholds": { "steps": [ { "color": "green", "value": null }, { "color": "yellow", "value": 80 }, { "color": "red", "value": 92 } ] } } },
+      "targets": [ { "refId": "A", "expr": "(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100" } ]
+    },
+    {
+      "type": "stat",
+      "title": "Host Disk % (/)",
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "seeker_prometheus" },
+      "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100, "thresholds": { "steps": [ { "color": "green", "value": null }, { "color": "yellow", "value": 80 }, { "color": "red", "value": 90 } ] } } },
+      "targets": [ { "refId": "A", "expr": "(1 - (node_filesystem_avail_bytes{mountpoint=\"/host\",fstype!~\"tmpfs|overlay\"} / node_filesystem_size_bytes{mountpoint=\"/host\",fstype!~\"tmpfs|overlay\"})) * 100" } ]
+    },
+    {
+      "type": "stat",
+      "title": "Running containers",
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "seeker_prometheus" },
+      "fieldConfig": { "defaults": { "unit": "short", "color": { "mode": "fixed", "fixedColor": "blue" } } },
+      "targets": [ { "refId": "A", "expr": "count(count by (name) (container_last_seen{name!=\"\"}))" } ]
+    },
+    {
+      "type": "timeseries",
+      "title": "CPU by container (cores)",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "datasource": { "type": "prometheus", "uid": "seeker_prometheus" },
+      "fieldConfig": { "defaults": { "unit": "short", "custom": { "drawStyle": "line", "fillOpacity": 10 } } },
+      "targets": [ { "refId": "A", "legendFormat": "{{name}}", "expr": "sum by (name) (rate(container_cpu_usage_seconds_total{name!=\"\"}[5m]))" } ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Memory by container",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+      "datasource": { "type": "prometheus", "uid": "seeker_prometheus" },
+      "fieldConfig": { "defaults": { "unit": "bytes", "custom": { "drawStyle": "line", "fillOpacity": 10 } } },
+      "targets": [ { "refId": "A", "legendFormat": "{{name}}", "expr": "sum by (name) (container_memory_working_set_bytes{name!=\"\"})" } ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Container restarts (1h)",
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 12 },
+      "datasource": { "type": "prometheus", "uid": "seeker_prometheus" },
+      "fieldConfig": { "defaults": { "unit": "short", "custom": { "drawStyle": "bars", "fillOpacity": 40 } } },
+      "targets": [ { "refId": "A", "legendFormat": "{{name}}", "expr": "sum by (name) (changes(container_start_time_seconds{name!=\"\"}[1h]))" } ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Proxmox (gaia) — node CPU / mem ratio",
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 12 },
+      "datasource": { "type": "prometheus", "uid": "seeker_prometheus" },
+      "fieldConfig": { "defaults": { "unit": "percentunit", "min": 0, "max": 1, "custom": { "drawStyle": "line", "fillOpacity": 10 } } },
+      "targets": [
+        { "refId": "A", "legendFormat": "cpu {{id}}", "expr": "pve_cpu_usage_ratio{id=~\"node/.*\"}" },
+        { "refId": "B", "legendFormat": "mem {{id}}", "expr": "pve_memory_usage_bytes{id=~\"node/.*\"} / pve_memory_size_bytes{id=~\"node/.*\"}" }
+      ]
+    }
+  ]
+}

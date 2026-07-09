@@ -1,0 +1,12 @@
+apiVersion: 1
+
+# Only add Prometheus (new). The existing Loki datasource is left untouched;
+# the Logs dashboard picks it via a datasource variable.
+datasources:
+  - name: Prometheus
+    uid: seeker_prometheus
+    type: prometheus
+    access: proxy
+    url: http://gaia_prometheus_prod:9090
+    isDefault: false
+    editable: true

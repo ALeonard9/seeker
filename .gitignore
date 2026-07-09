@@ -2,5 +2,9 @@ env/prod.env
 env/dev.env
 loki/data/*
 grafana/*
+!grafana/provisioning/
+!grafana/dashboards/
 watchtower/config.json
 prometheus/data/*
+# Proxmox exporter token (host-only)
+metrics/pve.yml

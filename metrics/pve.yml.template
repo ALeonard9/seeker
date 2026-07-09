@@ -1,0 +1,7 @@
+# Copy to metrics/pve.yml (gitignored) and fill in the Proxmox API token.
+# Create a token in Proxmox: Datacenter → Permissions → API Tokens.
+default:
+  user: root@pam
+  token_name: claude-MCP
+  token_value: PUT-TOKEN-HERE
+  verify_ssl: false

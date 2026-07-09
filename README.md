@@ -150,3 +150,20 @@ docker-compose up -d
 ```
 
 This command will start Loki, Grafana, and Watchtower services as defined in the `docker-compose.yml` file.
+
+## Metrics + health monitoring
+
+`metrics/` adds Prometheus + cAdvisor (per-container) + node-exporter (host) +
+prometheus-pve-exporter (Proxmox `gaia`) as an additive side-stack:
+
+```bash
+cp metrics/pve.yml.template metrics/pve.yml   # add a Proxmox API token
+docker compose -f metrics/docker-compose.yml up -d
+```
+
+Grafana provisioning (`grafana/provisioning/` + `grafana/dashboards/`) adds a
+**Prometheus** datasource and the **Stack Health** + **Logs** dashboards (folder
+"Homelab"). Every container's logs already flow to Loki via the Docker log driver.
+
+See [`docs/LOGGING.md`](docs/LOGGING.md) for the label scheme and a LogQL/PromQL
+query cheat sheet.

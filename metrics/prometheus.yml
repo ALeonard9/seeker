@@ -1,0 +1,35 @@
+global:
+  scrape_interval: 30s
+  scrape_timeout: 10s
+  external_labels:
+    host: hephaestus
+
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Per-container CPU/mem/net/restarts.
+  - job_name: cadvisor
+    static_configs:
+      - targets: ['gaia_cadvisor_prod:8080']
+
+  # hephaestus host CPU/mem/disk/load.
+  - job_name: node
+    static_configs:
+      - targets: ['gaia_node_exporter_prod:9100']
+
+  # Proxmox (gaia) node + guest health via the PVE API.
+  - job_name: pve
+    metrics_path: /pve
+    params:
+      module: ['default']
+    static_configs:
+      - targets: ['gaia.aleonard.us']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: gaia_pve_exporter_prod:9221
