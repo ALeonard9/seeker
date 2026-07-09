@@ -23,6 +23,10 @@ services:
       - loki
     volumes:
       - grafana_data:/var/lib/grafana:rw
+      # Provisioning + dashboards from the repo, so they survive container
+      # recreates (e.g. Watchtower image updates) — unlike docker cp.
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/etc/dashboards:ro
     networks:
       - local_network
 
