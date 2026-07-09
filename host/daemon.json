@@ -1,0 +1,19 @@
+{
+  "builder": {
+    "gc": {
+      "defaultKeepStorage": "20GB",
+      "enabled": true
+    }
+  },
+  "debug": true,
+  "experimental": true,
+  "log-driver": "loki",
+  "log-opts": {
+    "loki-batch-size": "400",
+    "loki-max-backoff": "800ms",
+    "loki-retries": "2",
+    "loki-timeout": "1s",
+    "loki-url": "http://hephaestus.aleonard.us:3100/loki/api/v1/push",
+    "mode": "non-blocking"
+  }
+}

@@ -2,6 +2,28 @@
 
 Inspired by Mistborn Seekers, seeker can sense power. This is a collection of tools to help track metrics, logs, and other data in a distributed system.
 
+## Repository layout (source of truth)
+
+Everything the observability stack needs is checked in here; the running config on
+hephaestus should match this repo.
+
+| Path | What it is | Deployed as |
+|------|-----------|-------------|
+| `docker-compose.yml` | Core stack: Loki, Grafana, Watchtower, Cloudflare tunnel | Portainer stack `gaia_seeker_prod` |
+| `loki/loki-config.yaml` | Loki config (single-binary, filesystem store) | mounted into Loki |
+| `metrics/docker-compose.yml` | Prometheus + cAdvisor + node-exporter + pve-exporter | `docker compose -f metrics/...` side-stack |
+| `metrics/prometheus.yml` | Prometheus scrape config | mounted into Prometheus |
+| `grafana/provisioning/` | Datasource (Prometheus) + dashboard provider | bind-mounted into Grafana |
+| `grafana/dashboards/` | Stack Health + Logs dashboards | bind-mounted into Grafana |
+| `host/daemon.json` | Loki Docker log-driver (log intake) — host-level | `/var/snap/docker/current/config/daemon.json` |
+| `env/prod.env.template` | Env vars (tokens gitignored) | copy to `env/prod.env` on host |
+| `docs/LOGGING.md` | Label scheme + LogQL/PromQL cheat sheet | — |
+
+> **Note:** the core stack is Portainer-managed. After changing `docker-compose.yml`
+> or `grafana/`, redeploy the `gaia_seeker_prod` stack in Portainer (pull from git)
+> so the running containers pick up the bind-mounts. Host-level `daemon.json` is
+> applied per [`host/README.md`](host/README.md).
+
 ## Getting Started
 
 Prerequisites:
