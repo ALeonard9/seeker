@@ -9,5 +9,5 @@ providers:
     updateIntervalSeconds: 30
     allowUiUpdates: true
     options:
-      path: /etc/dashboards
+      path: /var/lib/grafana/dashboards
       foldersFromFilesStructure: false

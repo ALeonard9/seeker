@@ -21,18 +21,21 @@ services:
     restart: unless-stopped
     depends_on:
       - loki
+    environment:
+      # Read provisioning from the persistent data volume (not /etc/grafana) so
+      # dashboards + datasources survive container recreates (Watchtower) without
+      # bind-mounts — which don't work under Portainer's relative paths.
+      - GF_PATHS_PROVISIONING=/var/lib/grafana/provisioning
     volumes:
       - grafana_data:/var/lib/grafana:rw
-      # Provisioning + dashboards from the repo, so they survive container
-      # recreates (e.g. Watchtower image updates) — unlike docker cp.
-      - ./grafana/provisioning:/etc/grafana/provisioning:ro
-      - ./grafana/dashboards:/etc/dashboards:ro
     networks:
       - local_network
 
   watchtower:
     container_name: ${LZ}_watchtower_${ENV}
-    image: containrrr/watchtower:latest
+    # containrrr/watchtower is archived and its old Docker API client fails
+    # against Docker 29 ("client version 1.25 too old"). Use the maintained fork.
+    image: nickfedor/watchtower:latest
     environment:
       TZ: US/Central
       WATCHTOWER_NOTIFICATION_REPORT: "true"
